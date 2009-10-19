@@ -1,5 +1,7 @@
 = svn-props-to-yaml
 
+TODO
+
 Description goes here.
 
 == Note on Patches/Pull Requests
@@ -15,4 +17,4 @@ Description goes here.
 
 == Copyright
 
-Copyright (c) 2009 Jared Morgan. See LICENSE for details.
+Copyright (c) 2009 Jared E. Morgan. See LICENSE for details.
