@@ -64,5 +64,16 @@ class SvnTransform
     def basename=(val)
       @path = @path.dirname + val
     end
+    
+    # Skip this file at this revision (that is, don't commit it to new repo).
+    def skip!
+      @skip = true
+    end
+    
+    # Whether this file should be skipped (not committed to new repo at this
+    # revision)
+    def skip?
+      @skip == true
+    end
   end
 end

@@ -96,10 +96,12 @@ class SvnTransform
             # TODO newline replace
             data = in_repo.file(full_path.to_s, rev_num)
             file = File.new(full_path, data, rev_num, rev_props)
-            parent_dir.file(file.basename) do
-              body(file.body)
-              file.properties.each_pair do |prop_k, prop_v|
-                prop(prop_k, prop_v) unless prop_k =~ /\Asvn:entry/
+            unless file.skip?
+              parent_dir.file(file.basename) do
+                body(file.body)
+                file.properties.each_pair do |prop_k, prop_v|
+                  prop(prop_k, prop_v) unless prop_k =~ /\Asvn:entry/
+                end
               end
             end
           else # directory

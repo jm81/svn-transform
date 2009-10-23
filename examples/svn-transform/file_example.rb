@@ -66,7 +66,11 @@ describe SvnTransform::File do
     end
   end
   
-  describe '#skip' do
-    it 'should skip this file'
+  describe '#skip!' do
+    it 'should set #skip? to true' do
+      @file.skip?.should be_false
+      @file.skip!
+      @file.skip?.should be_true
+    end
   end
 end
