@@ -3,6 +3,11 @@ require 'pathname'
 require 'svn-fixture'
 p SvnFixture::VERSION # TODO Remove
 
+# TODO file renaming
+# TODO properties stuff
+# TODO delete properties
+# TODO newline replace
+
 class SvnTransform
   VERSION = '0.0.1'
   
@@ -46,6 +51,35 @@ class SvnTransform
     @in_password = options[:password]
     @in_repo_uri = in_repo_uri
     @out_repo_name = out_repo_name
+    @file_transforms = []
+  end
+  
+  # Add a transform to be run on files. This can either be a class or a block
+  # (see Parameters). Each file at revision is given as an SvnTransform::File
+  # to each transform, which can alter the basename, body and/or properties
+  # of the file prior to its being committed to the new Repository.
+  # 
+  # ==== Parameters
+  # klass<Class>::
+  #   A class whose #initialize method accepts one argument (a 
+  #   SvnTransform::File) and which responds to #run.
+  # block<Proc>::
+  #   A block that accepts one argument (a SvnTransform::File). If a klass is
+  #   also given, the block is ignored
+  #
+  # ==== Returns
+  # Array:: The current @file_transforms Array
+  #
+  # ==== Raises
+  # ArgumentError:: Neither a Class nor a block was given.
+  def file_transform(klass = nil, &block)
+    if klass
+      @file_transforms << klass
+    elsif block_given?
+      @file_transforms << block
+    else
+      raise(ArgumentError, "Class or Block required")
+    end
   end
   
   def convert
@@ -65,6 +99,7 @@ class SvnTransform
       # should be completely accurate.
       in_repo = @in_repo
       out_wc_path = @out_repo.wc_path
+      svn_transform = self
       @out_repo.revision(rev_num, msg, rev_props) do
         deletes = []
         # Now go through all the changes. Setup directorie structure for each
@@ -90,12 +125,9 @@ class SvnTransform
             # Hold till the end of this revision
             deletes << full_path.to_s
           elsif in_repo.stat(full_path.to_s, rev_num).file?
-            # TODO file renaming
-            # TODO properties stuff
-            # TODO delete properties
-            # TODO newline replace
             data = in_repo.file(full_path.to_s, rev_num)
             file = File.new(full_path, data, rev_num, rev_props)
+            svn_transform.__send__(:process_file_transforms, file)
             unless file.skip?
               parent_dir.file(file.basename) do
                 body(file.body)
@@ -163,6 +195,20 @@ class SvnTransform
   def callbacks(ctx)
     ::Svn::Ra::Callbacks.new(ctx.auth_baton)
   end
-end
+  
+  # Process @file_transforms against the given File
+  #
+  # ==== Parameters
+  # file<SvnTransform::File>:: A file in the original repo at a given revision
+  def process_file_transforms(file)
+    @file_transforms.each do |transform|
+      if transform.is_a?(Proc)
+        transform.call(file)
+      else
+        transform.new(file).run
+      end
+    end
+  end
+end # SvnTransform
 
 require 'svn-transform/file'
