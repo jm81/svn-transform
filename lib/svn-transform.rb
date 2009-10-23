@@ -83,7 +83,7 @@ class SvnTransform
           # TODO Replaces
           
           if change.copyfrom_path
-            @ctx.cp(File.join(out_wc_path, change.copyfrom_path), File.join(out_wc_path, full_path.to_s))
+            @ctx.cp(::File.join(out_wc_path, change.copyfrom_path), ::File.join(out_wc_path, full_path.to_s))
           end
           
           if change.action == 'D'
@@ -95,9 +95,10 @@ class SvnTransform
             # TODO delete properties
             # TODO newline replace
             data = in_repo.file(full_path.to_s, rev_num)
-            parent_dir.file(full_path.basename.to_s) do
-              body(data[0])
-              data[1].each_pair do |prop_k, prop_v|
+            file = File.new(full_path, data, rev_num, rev_props)
+            parent_dir.file(file.basename) do
+              body(file.body)
+              file.properties.each_pair do |prop_k, prop_v|
                 prop(prop_k, prop_v) unless prop_k =~ /\Asvn:entry/
               end
             end
@@ -114,7 +115,7 @@ class SvnTransform
         
         # Now, do deletes
         deletes.each do |del_path|
-          @ctx.delete(File.join(out_wc_path, del_path))
+          @ctx.delete(::File.join(out_wc_path, del_path))
         end
       end
     end
@@ -161,3 +162,5 @@ class SvnTransform
     ::Svn::Ra::Callbacks.new(ctx.auth_baton)
   end
 end
+
+require 'svn-transform/file'
