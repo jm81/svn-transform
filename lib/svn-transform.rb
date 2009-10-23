@@ -61,8 +61,10 @@ class SvnTransform
   # 
   # ==== Parameters
   # klass<Class>::
-  #   A class whose #initialize method accepts one argument (a 
-  #   SvnTransform::File) and which responds to #run.
+  #   A class whose #initialize method accepts a SvnTransform::File as the first
+  #   argument and which responds to #run.
+  # args<Array>::
+  #   Additional arguments to pass to klass#initialize
   # block<Proc>::
   #   A block that accepts one argument (a SvnTransform::File). If a klass is
   #   also given, the block is ignored
@@ -72,9 +74,9 @@ class SvnTransform
   #
   # ==== Raises
   # ArgumentError:: Neither a Class nor a block was given.
-  def file_transform(klass = nil, &block)
+  def file_transform(klass = nil, *args, &block)
     if klass
-      @file_transforms << klass
+      @file_transforms << [klass, args]
     elsif block_given?
       @file_transforms << block
     else
@@ -205,7 +207,7 @@ class SvnTransform
       if transform.is_a?(Proc)
         transform.call(file)
       else
-        transform.new(file).run
+        transform[0].new(file, *transform[1]).run
       end
     end
   end

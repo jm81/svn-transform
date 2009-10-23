@@ -37,10 +37,10 @@ describe "SvnTransform" do
       @svn_t.file_transform(Object)
     end
     
-    it 'should add a Class to the @file_transforms Array' do
-      @svn_t.file_transform(Class)
+    it 'should add a [Class, args] Array to the @file_transforms Array' do
+      @svn_t.file_transform(Class, 'a', 1)
       @svn_t.instance_variable_get(:@file_transforms).should ==
-          [Object, Class]
+          [[Object, []], [Class, ['a', 1]]]
     end
     
     it 'should add a block to the @file_transforms Array' do
@@ -64,11 +64,17 @@ describe "SvnTransform" do
       )
       
       @klass = Class.new do
-        def initialize(file)
+        def initialize(file, arg1 = nil, arg2 = nil)
           @file = file
+          @arg1 = arg1
+          @arg2 = arg2
         end
         def run
-          @file.body = 'body from transform Class'
+          if @arg2
+            @file.body += " #{@arg2}"
+          else
+            @file.body = "body from transform Class"
+          end
         end
       end
     end
@@ -78,9 +84,10 @@ describe "SvnTransform" do
         file.properties['other'] = 'other_val'
       end
       @svn_t.file_transform(@klass)
+      @svn_t.file_transform(@klass, 'ARG1', 'ARG2')
       @svn_t.__send__(:process_file_transforms, @file)
       
-      @file.body.should == 'body from transform Class'
+      @file.body.should == 'body from transform Class ARG2'
       @file.properties.should ==
           {'prop:svn' => 'property value', 'other' => 'other_val'}
     end
