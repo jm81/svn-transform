@@ -214,3 +214,4 @@ class SvnTransform
 end # SvnTransform
 
 require 'svn-transform/file'
+require 'svn-transform/transform/noop'
