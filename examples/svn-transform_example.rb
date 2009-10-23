@@ -56,12 +56,7 @@ describe "SvnTransform" do
   describe '#process_file_transforms' do
     before(:each) do
       @svn_t = SvnTransform.new('in', 'out')
-      @file = SvnTransform::File.new(
-        '/path/to/file.txt', # Actually a Pathname
-        ['body of file', {'prop:svn' => 'property value'}],
-        10,
-        {'svn:author' => 'me'}
-      )
+      @file = SvnTransform::File.example
       
       @klass = Class.new do
         def initialize(file, arg1 = nil, arg2 = nil)

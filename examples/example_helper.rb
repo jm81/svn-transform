@@ -10,3 +10,11 @@ Micronaut.configure do |c|
   c.filter_run :focused => true
 end
 
+def (SvnTransform::File).example
+  SvnTransform::File.new(
+    '/path/to/file.txt', # Actually a Pathname
+    ['body of file', {'prop:svn' => 'property value'}],
+    10,
+    {'svn:author' => 'me'}
+  )
+end

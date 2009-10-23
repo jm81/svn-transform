@@ -2,12 +2,7 @@ require 'example_helper'
 
 describe SvnTransform::File do
   before(:each) do
-    @file = SvnTransform::File.new(
-        '/path/to/file.txt', # Actually a Pathname
-        ['body of file', {'prop:svn' => 'property value'}],
-        10,
-        {'svn:author' => 'me'}
-    )
+    @file = SvnTransform::File.example
   end
   
   describe '#initialize' do
