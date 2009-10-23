@@ -4,9 +4,15 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "svn-props-to-yaml"
-    gem.summary = %Q{Convert svn properties to YAML Front Matter}
-    gem.description = %Q{Given a Subversion repository, svn-props-to-yaml creates a new repo that is identical, except that all or some of the properties on each file are move from the properties to YAML prepended to the body of the file. Primarily useful prior to conversions to other repository types such as git.}
+    gem.name = "svn-transform"
+    gem.summary = %Q{Copy Subversion repository, with the ability to alter files}
+    gem.description = <<EOF
+Given a Subversion repository, svn-transform creates a new repo that is by 
+default identical, but allows changes to files, for example all or some of the 
+properties on each file can be moved from the properties to YAML prepended to 
+the body of the file. Primarily useful prior to conversions to other repository 
+types such as git.
+EOF
     gem.email = "jmorgan@morgancreative.net"
     gem.homepage = "http://github.com/jm81/svn-props-to-yaml"
     gem.authors = ["Jared Morgan"]

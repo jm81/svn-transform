@@ -1,6 +1,6 @@
 require 'example_helper'
 
-describe "SvnPropsToYaml" do
+describe "SvnTransform" do
   it 'should rename properties as specified'
   it 'should not move skipped properties'
   it 'should quote in yaml if the key string has a colon'
@@ -24,8 +24,8 @@ describe "SvnPropsToYaml" do
       SvnFixture::Repository.instance_variable_set(:@repositories, {})
       load File.dirname(__FILE__) + '/fixtures/original.rb'
       in_repo = SvnFixture.repo('original')
-      SvnPropsToYaml.new(in_repo.uri, 'directcopy').convert
-      SvnPropsToYaml.compare(in_repo.repos_path, SvnFixture.repo('directcopy').repos_path).should be_true
+      SvnTransform.new(in_repo.uri, 'directcopy').convert
+      SvnTransform.compare(in_repo.repos_path, SvnFixture.repo('directcopy').repos_path).should be_true
       SvnFixture.repo('original').destroy
       SvnFixture.repo('directcopy').destroy
     end

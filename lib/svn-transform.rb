@@ -3,7 +3,7 @@ require 'pathname'
 require 'svn-fixture'
 p SvnFixture::VERSION # TODO Remove
 
-class SvnPropsToYaml
+class SvnTransform
   VERSION = '0.0.1'
   
   class << self

@@ -1,4 +1,4 @@
-= svn-props-to-yaml
+= svn-transform
 
 TODO
 
