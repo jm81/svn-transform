@@ -96,7 +96,7 @@ class SvnTransform
   end
   
   def convert
-    @in_repo = connect(@in_repo_uri)
+    @in_repo, @ctx = connect(@in_repo_uri, @in_username, @out_username)
     @out_repo = SvnFixture.repo(@out_repo_name) # TODO name
     changesets
   end
@@ -177,27 +177,27 @@ class SvnTransform
   
   private
   
-  def connect(uri)
-    @ctx = context(uri)
+  def connect(uri, username = nil, password = nil)
+    ctx = context(uri, username, password)
     
     # This will raise some error if connection fails for whatever reason.
     # I don't currently see a reason to handle connection errors here, as I
     # assume the best handling would be to raise another error.
-    ::Svn::Ra::Session.open(uri, {}, callbacks(@ctx))
+    return ::Svn::Ra::Session.open(uri, {}, callbacks(ctx)), ctx
   end
   
-  def context(uri)
+  def context(uri, username = nil, password = nil)
     # Client::Context, which paticularly holds an auth_baton.
     ctx = ::Svn::Client::Context.new
-    if @in_username && @in_password
+    if username && password
       # TODO: What if another provider type is needed? Is this plausible?
       ctx.add_simple_prompt_provider(0) do |cred, realm, username, may_save|
-        cred.username = @in_username
-        cred.password = @in_password
+        cred.username = username
+        cred.password = password
       end
     elsif URI.parse(uri).scheme == "file" 
       ctx.add_username_prompt_provider(0) do |cred, realm, username, may_save|
-        cred.username = @in_username || "ANON"
+        cred.username = username || "ANON"
       end
     else
       ctx.auth_baton = ::Svn::Core::AuthBaton.new()
