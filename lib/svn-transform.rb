@@ -103,7 +103,11 @@ class SvnTransform
   
   def changesets
     args = ['', 1, @in_repo.latest_revnum, 0, true, nil]
+    
     @in_repo.log(*args) do |changes, rev_num, author, date, msg|
+      # Sort so that files are processed first (for benefit of PropsToYaml),
+      # and deletes are last
+      changes = changes.sort { |a,b| sort_for(a, rev_num) <=> sort_for(b, rev_num) }
       # Get revision properties
       rev_props = @ctx.revprop_list(@in_repo_uri, rev_num)[0]
       # Create Revision, including all revprops. Note that svn:author and 
@@ -114,10 +118,10 @@ class SvnTransform
       out_wc_path = @out_repo.wc_path
       svn_transform = self
       @out_repo.revision(rev_num, msg, rev_props) do
-        deletes = []
         # Now go through all the changes. Setup directorie structure for each
         # node. This is easier to understand, in my opinion.
-        changes.each_pair do |full_path, change|
+        
+        changes.each do |full_path, change|
           full_path = Pathname.new(full_path.sub(/\A\//, ''))
           
           # Descend to parent directory
@@ -135,8 +139,7 @@ class SvnTransform
           end
           
           if change.action == 'D'
-            # Hold till the end of this revision
-            deletes << full_path.to_s
+            @ctx.delete(::File.join(out_wc_path, full_path.to_s))
           elsif in_repo.stat(full_path.to_s, rev_num).file?
             data = in_repo.file(full_path.to_s, rev_num)
             transform_file = ::SvnTransform::File.new(full_path, data, rev_num, rev_props)
@@ -159,11 +162,6 @@ class SvnTransform
               end
             end
           end
-        end
-        
-        # Now, do deletes
-        deletes.each do |del_path|
-          @ctx.delete(::File.join(out_wc_path, del_path))
         end
       end
     end
@@ -236,6 +234,15 @@ class SvnTransform
         transform[0].new(dir, *transform[1]).run
       end
     end
+  end
+  
+  # Return an Integer such that file changes are first, directories second
+  # and deleted nodes last (to minimize the chance of a Transformation being
+  # overridden.
+  def sort_for(change, rev_num)
+    return 2 if change[1].action == 'D'
+    return 0 if @in_repo.stat(change[0].sub(/\A\//, ''), rev_num).file?
+    return 1
   end
 end # SvnTransform
 
