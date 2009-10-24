@@ -4,8 +4,7 @@ require 'svn-fixture'
 p SvnFixture::VERSION # TODO Remove
 
 # TODO file renaming
-# TODO properties stuff
-# TODO delete properties
+# TODO properties stuff (incl Directories)
 # TODO newline replace
 
 class SvnTransform
@@ -52,6 +51,7 @@ class SvnTransform
     @in_repo_uri = in_repo_uri
     @out_repo_name = out_repo_name
     @file_transforms = []
+    @dir_transforms = []
   end
   
   # Add a transform to be run on files. This can either be a class or a block
@@ -79,6 +79,17 @@ class SvnTransform
       @file_transforms << [klass, args]
     elsif block_given?
       @file_transforms << block
+    else
+      raise(ArgumentError, "Class or Block required")
+    end
+  end
+  
+  # Add a transform to be run on directories. See +file_transform+
+  def dir_transform(klass = nil, *args, &block)
+    if klass
+      @dir_transforms << [klass, args]
+    elsif block_given?
+      @dir_transforms << block
     else
       raise(ArgumentError, "Class or Block required")
     end
@@ -128,12 +139,12 @@ class SvnTransform
             deletes << full_path.to_s
           elsif in_repo.stat(full_path.to_s, rev_num).file?
             data = in_repo.file(full_path.to_s, rev_num)
-            file = File.new(full_path, data, rev_num, rev_props)
-            svn_transform.__send__(:process_file_transforms, file)
-            unless file.skip?
-              parent_dir.file(file.basename) do
-                body(file.body)
-                file.properties.each_pair do |prop_k, prop_v|
+            transform_file = ::SvnTransform::File.new(full_path, data, rev_num, rev_props)
+            svn_transform.__send__(:process_file_transforms, transform_file)
+            unless transform_file.skip?
+              parent_dir.file(transform_file.basename) do
+                body(transform_file.body)
+                transform_file.properties.each_pair do |prop_k, prop_v|
                   prop(prop_k, prop_v) unless prop_k =~ /\Asvn:entry/
                 end
               end
@@ -141,8 +152,9 @@ class SvnTransform
           else # directory
             parent_dir.dir(full_path.basename.to_s) do
               data = in_repo.dir(full_path.to_s, rev_num)
-              # TODO properties to yaml
-              data[1].each_pair do |prop_k, prop_v|
+              transform_dir = ::SvnTransform::Dir.new(full_path, data, rev_num, rev_props, in_repo, self)
+              svn_transform.__send__(:process_dir_transforms, transform_dir)
+              transform_dir.properties.each_pair do |prop_k, prop_v|
                 prop(prop_k, prop_v) unless prop_k =~ /\Asvn:entry/
               end
             end
@@ -211,7 +223,22 @@ class SvnTransform
       end
     end
   end
+  
+  # Process @dir_transforms against the given Dir
+  #
+  # ==== Parameters
+  # dir<SvnTransform::Dir>:: A directory in the original repo at a given revision
+  def process_dir_transforms(dir)
+    @dir_transforms.each do |transform|
+      if transform.is_a?(Proc)
+        transform.call(dir)
+      else
+        transform[0].new(dir, *transform[1]).run
+      end
+    end
+  end
 end # SvnTransform
 
 require 'svn-transform/file'
+require 'svn-transform/dir'
 require 'svn-transform/transform/noop'

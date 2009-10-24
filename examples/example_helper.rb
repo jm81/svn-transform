@@ -18,3 +18,14 @@ def (SvnTransform::File).example
     {'svn:author' => 'me'}
   )
 end
+
+def (SvnTransform::Dir).example
+  SvnTransform::Dir.new(
+    '/path/to/dir', # Actually a Pathname
+    [{'entry.txt' => nil}, {'prop:svn' => 'property value'}],
+    10,
+    {'svn:author' => 'me'},
+    :repos, # Actually a Svn::Ra::Session
+    :fixture_dir
+  )
+end

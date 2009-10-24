@@ -87,4 +87,44 @@ describe "SvnTransform" do
           {'prop:svn' => 'property value', 'other' => 'other_val'}
     end
   end
+  
+  describe '#dir_transform' do
+    before(:each) do
+      @svn_t = SvnTransform.new('in', 'out')
+      @svn_t.dir_transform(Object)
+    end
+    
+    it 'should add a [Class, args] Array to the @dir_transforms Array' do
+      @svn_t.dir_transform(Class, 'a', 1)
+      @svn_t.instance_variable_get(:@dir_transforms).should ==
+        [[Object, []], [Class, ['a', 1]]]
+    end
+    
+    it 'should add a block to the @dir_transforms Array' do
+      @svn_t.dir_transform { |dir| p dir }
+      @svn_t.instance_variable_get(:@dir_transforms)[1].should be_kind_of(Proc)
+    end
+    
+    it 'should raise an Error if neither is provided' do
+      lambda { @svn_t.dir_transform }.should raise_error(ArgumentError)
+    end
+  end
+  
+  describe '#process_dir_transforms' do
+    before(:each) do
+      @svn_t = SvnTransform.new('in', 'out')
+      @dir = SvnTransform::Dir.example
+    end
+  
+    it 'should run +dir+ through each dir_transform' do
+      @svn_t.dir_transform do |dir|
+        dir.properties['other'] = 'other_val'
+      end
+      
+      @svn_t.__send__(:process_dir_transforms, @dir)
+      
+      @dir.properties.should ==
+         {'prop:svn' => 'property value', 'other' => 'other_val'}
+    end
+  end
 end
