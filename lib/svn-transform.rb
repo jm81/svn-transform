@@ -3,10 +3,6 @@ require 'pathname'
 require 'svn-fixture'
 p SvnFixture::VERSION # TODO Remove
 
-# TODO file renaming
-# TODO properties stuff (incl Directories)
-# TODO newline replace
-
 class SvnTransform
   VERSION = '0.0.1'
   
