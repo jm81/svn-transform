@@ -1,20 +1,6 @@
 require 'example_helper'
 
 describe "SvnTransform" do
-  it 'should rename properties as specified'
-  it 'should not move skipped properties'
-  it 'should quote in yaml if the key string has a colon'
-  it 'should retain body updates'
-  it 'should merge with existing YAML Front Matter (using most recent update)'
-  it 'should update properties in YAML when svn properties are updated'
-  it 'should retain all adds and deletes'
-  
-  describe '#update_eof' do
-    it 'should alter newlines if config[:eof] set (to LF)'
-    it 'should alter newlines if config[:eof] set (to CRLF)'
-    it 'should not alter newlines if config[:eof] is nil'
-  end
-  
   describe '#convert' do
     it 'should make full conversion correctly'
   end
