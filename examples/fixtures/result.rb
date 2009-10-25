@@ -15,11 +15,11 @@ SvnFixture.repo('result') do
       prop 'ws:title', 'Articles'
       
       file 'philosophy.txt' do
-        body '---\ntitle: Philosophy\npublished_at: 2009-07-01 12:00:00\n\---\n\nMy philosophy is to eat a lot of salsa!'
+        body "---\ntitle: Philosophy\npublished_at: 2009-07-01 12:00:00\n\---\n\nMy philosophy is to eat a lot of salsa!"
       end
       
       file 'computers.txt' do
-        body '---\ntitle: Computers\npublished_at: 2009-07-01 12:00:00\n---\n\nComputers do not like salsa so much.'
+        body "---\ntitle: Computers\npublished_at: 2009-07-01 12:00:00\n---\n\nComputers do not like salsa so much."
       end
     end
   end
@@ -27,11 +27,11 @@ SvnFixture.repo('result') do
   revision 3, 'Change text of articles, with different newline styles', :author => "author" do
     dir 'articles' do
       file 'philosophy.txt' do
-        body '---\ntitle: Philosophy\npublished_at: 2009-07-01 12:00:00\n\---\n\nMy philosophy is \n\nto eat a lot of salsa!\n'
+        body "---\ntitle: Philosophy\npublished_at: 2009-07-01 12:00:00\n\---\n\nMy philosophy is \n\nto eat a lot of salsa!\n"
       end
       
       file 'computers.txt' do
-        body '---\ntitle: Computers\npublished_at: 2009-07-01 12:00:00\n---\n\nComputers do not \n\nlike salsa so much.'
+        body "---\ntitle: Computers\npublished_at: 2009-07-01 12:00:00\n---\n\nComputers do not \n\nlike salsa so much."
       end
     
       file 'old-apple.txt' do
@@ -43,11 +43,11 @@ SvnFixture.repo('result') do
   revision 4, 'Add some YAML props' do
     dir 'articles' do
       file 'philosophy.txt' do
-        body '---\ntitle: New Philosophy\npublished_at: 2009-07-01 12:00:00\n---\n\nMy philosophy is \n\nto eat a lot of salsa!\n'
+        body "---\ntitle: New Philosophy\npublished_at: 2009-07-01 12:00:00\n---\n\nMy philosophy is \n\nto eat a lot of salsa!\n"
       end
       
       file 'computers.txt' do
-        body '---\neol: CRLF\ntitle: Computers\npublished_at: 2009-07-01 12:00:00\n---\n\ncomputers do not \nlike salsa so much.'
+        body "---\neol: CRLF\ntitle: Computers\npublished_at: 2009-07-01 12:00:00\n---\n\ncomputers do not \nlike salsa so much."
       end
     end
   end
@@ -55,7 +55,7 @@ SvnFixture.repo('result') do
   revision 5, 'Add a directory property' do
     dir 'articles' do
       file 'meta.yml' do
-        body '---\nname: Articles\n---\n\n'
+        body "---\nname: Articles\n---\n\n"
       end
     end
   end
@@ -64,7 +64,7 @@ SvnFixture.repo('result') do
     dir 'articles' do
       file 'computers.txt' do
         prop 'alt:title', 'Computers'
-        body '---\neol: CRLF\ntitle: Computers\npublished_at: 2009-07-01 12:00:00\n---\n\ncomputers do not \nlike salsa so much.'
+        body "---\neol: CRLF\ntitle: Computers\npublished_at: 2009-07-01 12:00:00\n---\n\ncomputers do not \nlike salsa so much."
       end
     end
   end
@@ -80,7 +80,7 @@ SvnFixture.repo('result') do
     dir 'articles' do
       file 'computers.txt' do
         prop 'alt:title', 'Computers'
-        body '---\neol: CRLF\ntitle: Computers\npublished_at: 2009-08-01 12:00:00\n---\n\ncomputers do not \nlike salsa so much.'
+        body "---\neol: CRLF\ntitle: Computers\npublished_at: 2009-08-01 12:00:00\n---\n\ncomputers do not \nlike salsa so much."
       end
     end
   end

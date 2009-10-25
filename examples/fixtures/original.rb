@@ -27,11 +27,11 @@ SvnFixture.repo('original') do
   revision 3, 'Change text of articles, with different newline styles', :author => "author" do
     dir 'articles' do
       file 'philosophy.txt' do
-        body 'My philosophy is \n\nto eat a lot of salsa!\n'
+        body "My philosophy is \n\nto eat a lot of salsa!\n"
       end
       
       file 'computers.txt' do
-        body 'Computers do not \r\n\r\nlike salsa so much.'
+        body "Computers do not \r\n\r\nlike salsa so much."
       end
     
       file 'old-apple.txt' do
@@ -43,11 +43,11 @@ SvnFixture.repo('original') do
   revision 4, 'Add some YAML props' do
     dir 'articles' do
       file 'philosophy.txt' do
-        body '---\ntitle: New Philosophy\n---\n\nMy philosophy is \n\nto eat a lot of salsa!\n'
+        body "---\ntitle: New Philosophy\n---\n\nMy philosophy is \n\nto eat a lot of salsa!\n"
       end
       
       file 'computers.txt' do
-        body '---\r\neol: CRLF\r\n\---\r\n\r\ncomputers do not \r\nlike salsa so much.'
+        body "---\r\neol: CRLF\r\n\---\r\n\r\ncomputers do not \r\nlike salsa so much."
       end
     end
   end
