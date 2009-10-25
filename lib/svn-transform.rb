@@ -248,5 +248,6 @@ end # SvnTransform
 
 require 'svn-transform/file'
 require 'svn-transform/dir'
+require 'svn-transform/transform/newline'
 require 'svn-transform/transform/noop'
 require 'svn-transform/transform/props_to_yaml'
