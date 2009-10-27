@@ -2,7 +2,39 @@ require 'example_helper'
 
 describe "SvnTransform" do
   describe '#convert' do
-    it 'should make full conversion correctly'
+    it 'should make full conversion correctly' do
+      SvnFixture::Repository.instance_variable_set(:@repositories, {})
+      load File.dirname(__FILE__) + '/fixtures/original.rb'
+      load File.dirname(__FILE__) + '/fixtures/result.rb'
+      in_repo = SvnFixture.repo('original')
+      # Update rev 0 date in result
+      r0_date = in_repo.ctx.revprop_list(in_repo.uri, 0)[0]['svn:date']
+      SvnFixture.repo('result').repos.fs.set_prop('svn:date', SvnFixture.svn_time(r0_date), 0)
+      
+      @transform = SvnTransform.new(in_repo.uri, 'transformed')
+      
+      @transform.file_transform(
+        SvnTransform::Transform::PropsToYaml,
+        [['ws:tags', 'topics'], [/\Aws:(.*)\Z/, '\1']]
+      )
+      @transform.dir_transform(
+        SvnTransform::Transform::PropsToYaml,
+        [['ws:tags', 'topics'], [/\Aws:(.*)\Z/, '\1']]
+      )
+      @transform.file_transform(
+        SvnTransform::Transform::Newline
+      )
+      @transform.file_transform(
+        SvnTransform::Transform::Extension,
+        :txt => :md
+      )
+      
+      @transform.convert
+      SvnTransform.compare(SvnFixture.repo('result').repos_path, SvnFixture.repo('transformed').repos_path).should be_true
+      SvnFixture.repo('original').destroy
+      SvnFixture.repo('result').destroy
+      SvnFixture.repo('transformed').destroy
+    end
   end
   
   describe 'direct copy' do
