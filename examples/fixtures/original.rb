@@ -6,7 +6,7 @@ SvnFixture.repo('original') do
     dir 'articles'
   end
   
-  revision 2, 'Create articles about computers and philosophy' do
+  revision 2, 'Create articles about computers and philosophy', :date => '2009-01-02' do
     dir 'articles' do
       prop 'ws:title', 'Articles'
       
@@ -24,7 +24,7 @@ SvnFixture.repo('original') do
     end
   end
   
-  revision 3, 'Change text of articles, with different newline styles', :author => "author" do
+  revision 3, 'Change text of articles, with different newline styles', :author => "author", :date => '2009-01-03' do
     dir 'articles' do
       file 'philosophy.txt' do
         body "My philosophy is \n\nto eat a lot of salsa!\n"
@@ -40,7 +40,7 @@ SvnFixture.repo('original') do
     end
   end
   
-  revision 4, 'Add some YAML props' do
+  revision 4, 'Add some YAML props', :date => '2009-01-04' do
     dir 'articles' do
       file 'philosophy.txt' do
         body "---\ntitle: New Philosophy\n---\n\nMy philosophy is \n\nto eat a lot of salsa!\n"
@@ -52,13 +52,13 @@ SvnFixture.repo('original') do
     end
   end
   
-  revision 5, 'Add a directory property' do
+  revision 5, 'Add a directory property', :date => '2009-01-05' do
     dir 'articles' do
       prop 'ws:name', 'Articles'
     end
   end
   
-  revision 6, 'Add property with different prefix' do
+  revision 6, 'Add property with different prefix', :date => '2009-01-06' do
     dir 'articles' do
       file 'computers.txt' do
         prop 'alt:title', 'Computers'
@@ -66,14 +66,14 @@ SvnFixture.repo('original') do
     end
   end
   
-  revision 7, 'Moves and copies' do
+  revision 7, 'Moves and copies', :date => '2009-01-07' do
     dir 'articles' do
       move 'philosophy.txt', 'phil.txt'
       copy 'computers.txt', 'computations.txt'
     end
   end
   
-  revision 8, 'Revise properties' do
+  revision 8, 'Revise properties', :date => '2009-01-08' do
     dir 'articles' do
       file 'computers.txt' do
         prop 'ws:published_at', '2009-08-01 12:00:00'
