@@ -41,11 +41,33 @@ class SvnTransform
     end
   end
   
+  # Setup and SvnTransform with in (existing) repository URI, a name for the
+  # out (transformed) repository, and options.
+  #
+  # ==== Parameters
+  # in_repo_uri<String>::
+  #   URI of existing repository(e.g. file:///home/jm81/repo,
+  #   svn://localhost/repo)
+  # out_repo_name<String>::
+  #   Name only of out repository (e.g. "out"). See options[:out_repos_path]
+  #   for specifying full path (on local filesystem only)
+  #
+  # ==== Options
+  # :username<String>:: Username for in (existing) repository
+  # :password<String>:: Password for in (existing) repository
+  # :out_repos_path<String>::
+  #   Full path for out repository (defaults to 
+  #   "#{SvnFixture.config[:base_path]}/repo_#{out_repo_name}")
+  # :out_wc_path<String>::
+  #   Full path for out working copy (used by SvnFixture; defaults to 
+  #   "#{SvnFixture.config[:base_path]}/wc_#{out_repo_name}")
   def initialize(in_repo_uri, out_repo_name = nil, options = {})
     @in_username = options[:username]
     @in_password = options[:password]
     @in_repo_uri = in_repo_uri
     @out_repo_name = out_repo_name
+    @out_repos_path = options[:out_repos_path]
+    @out_wc_path = options[:out_wc_path]
     @file_transforms = []
     @dir_transforms = []
   end
@@ -93,7 +115,7 @@ class SvnTransform
   
   def convert
     @in_repo, @ctx = connect(@in_repo_uri, @in_username, @out_username)
-    @out_repo = SvnFixture.repo(@out_repo_name) # TODO name
+    @out_repo = SvnFixture.repo(@out_repo_name, @out_repos_path, @out_wc_path)
     changesets
   end
   
