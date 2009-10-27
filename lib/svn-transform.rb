@@ -99,6 +99,7 @@ class SvnTransform
   
   def changesets
     args = ['', 1, @in_repo.latest_revnum, 0, true, nil]
+    path_renames = {}
     
     @in_repo.log(*args) do |changes, rev_num, author, date, msg|
       # Sort so that files are processed first (for benefit of PropsToYaml),
@@ -119,7 +120,6 @@ class SvnTransform
         
         changes.each do |full_path, change|
           full_path = Pathname.new(full_path.sub(/\A\//, ''))
-          
           # Descend to parent directory
           parent_dir = self
           full_path.dirname.descend do |path|
@@ -130,22 +130,33 @@ class SvnTransform
           
           # TODO Replaces
           
-          if change.copyfrom_path
-            @ctx.cp(::File.join(out_wc_path, change.copyfrom_path), ::File.join(out_wc_path, full_path.to_s))
-          end
-          
           if change.action == 'D'
-            @ctx.delete(::File.join(out_wc_path, full_path.to_s))
+            del_path = path_renames['/' + full_path.to_s] || full_path.to_s
+            @ctx.delete(::File.join(out_wc_path, del_path))
           elsif in_repo.stat(full_path.to_s, rev_num).file?
             data = in_repo.file(full_path.to_s, rev_num)
             transform_file = ::SvnTransform::File.new(full_path, data, rev_num, rev_props)
+            original_path = transform_file.path
             svn_transform.__send__(:process_file_transforms, transform_file)
+            
+            if change.copyfrom_path
+              from_path = path_renames[change.copyfrom_path] || change.copyfrom_path
+              @ctx.cp( 
+                ::File.join(out_wc_path, from_path),
+                ::File.join(out_wc_path, transform_file.path.to_s)
+              )
+            end
+            
             unless transform_file.skip?
               parent_dir.file(transform_file.basename) do
                 body(transform_file.body)
                 transform_file.properties.each_pair do |prop_k, prop_v|
                   prop(prop_k, prop_v) unless prop_k =~ /\Asvn:entry/
                 end
+              end
+              # For benefit of copies
+              if original_path != transform_file.path
+                path_renames['/' + original_path] = '/' + transform_file.path.to_s
               end
             end
           else # directory
