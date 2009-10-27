@@ -118,7 +118,9 @@ class SvnTransform
   # calls +changesets+ to do the actual work. Finally, commit the SvnFixture
   # (out repo) and update its rev 0 date to match the in repo
   def convert
-    @in_repo, @ctx = connect(@in_repo_uri, @in_username, @out_username)
+    in_repo_session = Session.new(@in_repo_uri, @in_username, @out_username)
+    @in_repo = in_repo_session.session
+    @ctx = in_repo_session.context
     @out_repo = SvnFixture.repo(@out_repo_name, @out_repos_path, @out_wc_path)
     
     # Process changesets and commit
@@ -216,56 +218,6 @@ class SvnTransform
   
   private
   
-  # Connect to a Repository (internally only used to connect to the existing
-  # repository.
-  #
-  # ==== Parameters
-  # uri<String>:: URI of the repository (e.g. svn://example.com/repo)
-  # username<String>:: Username, if needed
-  # password<String>:: Password, if needed
-  def connect(uri, username = nil, password = nil)
-    ctx = context(uri, username, password)
-    
-    # This will raise some error if connection fails for whatever reason.
-    # I don't currently see a reason to handle connection errors here, as I
-    # assume the best handling would be to raise another error.
-    return ::Svn::Ra::Session.open(uri, {}, callbacks(ctx)), ctx
-  end
-  
-  # Setup the working context (I don't really understand all this, but it's
-  # necessary to work with the working copy).
-  #
-  # ==== Parameters
-  # uri<String>:: URI of the repository (e.g. svn://example.com/repo)
-  # username<String>:: Username, if needed
-  # password<String>:: Password, if needed
-  def context(uri, username = nil, password = nil)
-    # Client::Context, which paticularly holds an auth_baton.
-    ctx = ::Svn::Client::Context.new
-    if username && password
-      # TODO: What if another provider type is needed? Is this plausible?
-      ctx.add_simple_prompt_provider(0) do |cred, realm, username, may_save|
-        cred.username = username
-        cred.password = password
-      end
-    elsif URI.parse(uri).scheme == "file" 
-      ctx.add_username_prompt_provider(0) do |cred, realm, username, may_save|
-        cred.username = username || "ANON"
-      end
-    else
-      ctx.auth_baton = ::Svn::Core::AuthBaton.new()
-    end
-    ctx
-  end
-  
-  # Setup callbacks for Svn::Ra::Session.open.
-  #
-  # ==== Parameters
-  # ctx<Svn::Client::Context>
-  def callbacks(ctx)
-    ::Svn::Ra::Callbacks.new(ctx.auth_baton)
-  end
-  
   # Process @file_transforms against the given File
   #
   # ==== Parameters
@@ -304,6 +256,7 @@ class SvnTransform
   end
 end # SvnTransform
 
+require 'svn-transform/session'
 require 'svn-transform/file'
 require 'svn-transform/dir'
 

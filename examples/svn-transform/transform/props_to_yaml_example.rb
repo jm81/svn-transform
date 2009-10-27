@@ -88,7 +88,8 @@ describe SvnTransform::Transform::PropsToYaml do
       transform.dir_transform(@klass, :all)
       transform.convert
       
-      repo, ctx = transform.__send__(:connect, SvnFixture.repo('dir_props_out').uri)
+      out_sess = SvnTransform::Session.new(SvnFixture.repo('dir_props_out').uri)
+      repo = out_sess.session
       repo.stat('noprops/meta.yml', 1).should be_nil
       
       repo.dir('svnprops', 1)[1]['one'].should be_nil
