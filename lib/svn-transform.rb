@@ -113,12 +113,30 @@ class SvnTransform
     end
   end
   
+  # Run the conversion. This method sets up the connection to the existing
+  # repo and the SvnFixture that will generate the final transformed repo, then
+  # calls +changesets+ to do the actual work. Finally, commit the SvnFixture
+  # (out repo) and update its rev 0 date to match the in repo
   def convert
     @in_repo, @ctx = connect(@in_repo_uri, @in_username, @out_username)
     @out_repo = SvnFixture.repo(@out_repo_name, @out_repos_path, @out_wc_path)
+    
+    # Process changesets and commit
     changesets
+    @out_repo.commit
+    
+    # Update rev 0 date
+    r0_date = @ctx.revprop_list(@in_repo_uri, 0)[0]['svn:date']
+    @out_repo.repos.fs.set_prop('svn:date', SvnFixture.svn_time(r0_date), 0)
   end
   
+  # Process the existing changesets and generate a SvnFixture::Revision for
+  # each.
+  #
+  # TODO This is a massive mess. It works, at least for my purposes. But it is
+  # a mess. Ideally, it should be multiple methods. Part of this is due to how
+  # I set up the SvnFixture::Revision class, which accepts a block at initialize
+  # that is process only when its #commit method is called.
   def changesets
     args = ['', 1, @in_repo.latest_revnum, 0, true, nil]
     path_renames = {}
@@ -194,16 +212,17 @@ class SvnTransform
         end
       end
     end
-    
-    @out_repo.commit
-    
-    # Update rev 0 date
-    r0_date = @ctx.revprop_list(@in_repo_uri, 0)[0]['svn:date']
-    @out_repo.repos.fs.set_prop('svn:date', SvnFixture.svn_time(r0_date), 0)
   end
   
   private
   
+  # Connect to a Repository (internally only used to connect to the existing
+  # repository.
+  #
+  # ==== Parameters
+  # uri<String>:: URI of the repository (e.g. svn://example.com/repo)
+  # username<String>:: Username, if needed
+  # password<String>:: Password, if needed
   def connect(uri, username = nil, password = nil)
     ctx = context(uri, username, password)
     
@@ -213,6 +232,13 @@ class SvnTransform
     return ::Svn::Ra::Session.open(uri, {}, callbacks(ctx)), ctx
   end
   
+  # Setup the working context (I don't really understand all this, but it's
+  # necessary to work with the working copy).
+  #
+  # ==== Parameters
+  # uri<String>:: URI of the repository (e.g. svn://example.com/repo)
+  # username<String>:: Username, if needed
+  # password<String>:: Password, if needed
   def context(uri, username = nil, password = nil)
     # Client::Context, which paticularly holds an auth_baton.
     ctx = ::Svn::Client::Context.new
@@ -232,7 +258,10 @@ class SvnTransform
     ctx
   end
   
-  # callbacks for Svn::Ra::Session.open. This includes the client +context+.
+  # Setup callbacks for Svn::Ra::Session.open.
+  #
+  # ==== Parameters
+  # ctx<Svn::Client::Context>
   def callbacks(ctx)
     ::Svn::Ra::Callbacks.new(ctx.auth_baton)
   end
@@ -277,7 +306,8 @@ end # SvnTransform
 
 require 'svn-transform/file'
 require 'svn-transform/dir'
-require 'svn-transform/transform/extension'
-require 'svn-transform/transform/newline'
-require 'svn-transform/transform/noop'
-require 'svn-transform/transform/props_to_yaml'
+
+# Require predefined transforms
+%w{extension newline noop props_to_yaml}.each do |filename|
+  require 'svn-transform/transform/' + filename
+end
