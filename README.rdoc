@@ -1,8 +1,89 @@
 = svn-transform
 
-TODO
+SvnTransform allows you to recreate a Subversion repository, and make some 
+changes to it in the process. It is particularly designed to allow altering
+the content, properties or name of files; changes at the directory level are
+possible but more likely to cause errors.
 
-Description goes here.
+The library seems to be working for my purposes, but the more moves, deletes,
+copies, etc involved, the more likely this is to just miss something. In other
+words, don't just throw out the old repository; you may need it.
+
+== Use cases
+
+Some reasons you might want to use SvnTransform:
+
+1. Change file extensions to suit a particular library (.txt to .markdown; See
+   Transforms::Extension)
+2. Move Subversion properties on files to YAML at the beginning of the file
+   (See Transforms::PropsToYaml), for example, before migrating to git.
+3. Change Windows style newlines to Unix style throughout repository history
+   (See Transforms::Newline)
+4. Remove a password from a file.
+5. Create a new repository based on another repo to which you have read but not 
+   write and/or admin access (keep the full history of an abandoned project).
+
+== Usage
+
+The simplest case is a copy without any transformations:
+
+    require 'svn-transform'
+    transform = SvnTransform.new('svn://example.com/existing_repo', 'my_copy')
+    transform.convert
+
+SvnTransform includes a method for comparing two repositories on the local 
+filesystem (it just runs a recursive diff with some options):
+
+    SvnTransform.compare('/path/to/existing', '/path/to/new')
+
+I recommend (where reasonable) before you run a real transform, run a direct 
+copy, followed by .compare, as it might alert you that there's something about 
+the particular repository that SvnTransform may not handle well. There's a few 
+things to be aware of here:
+
+- Subversion svn:entry properties (or some portion of them) seem to be affected
+  by the past history of the repository, so one difference can produce a lot
+  of differences in the repository.
+- Folder structures may be different depending on the version of Subversion
+  running when the existing repo was created versus the conversion.
+
+A basic copy can be useful, but the key element of SvnTransform is the ability
+to make (some) changes throughout the entire history. A transform can be either
+be a class or a block. Each file (or directory), at each revision where it is 
+modified in some way, is given as an SvnTransform::File (or 
+SvnTransform::Dir) to each transform, which can alter the basename, body 
+and/or properties of the file prior to its being committed to the new 
+Repository.
+
+- A class should have an #initialize method which accepts a SvnTransform::File 
+  (or Dir) as the first argument and which responds to #run.
+- A block that accepts one argument (a SvnTransform::File or Dir).
+
+See SvnTransform::File or SvnTransform::Dir for the methods available,
+which include various metadata about the node/revision and the ability to make
+changes prior to the commit.
+
+Use either SvnTransform#file_transform or #dir_transform to add the transform
+(they are processed in order added).
+
+Several Transform classes are included (see classes in the SvnTransform::Transform
+module). Below is an example using the Transform::Extension class and a block.
+
+    transform = SvnTransform.new('file:///svn/myrepo', 'transformed_repo')
+    transform.file_transform(SvnTransform::Transform::Extension, {:md => :markdown})
+    transform.file_transform do |file|
+      # Add leading newline to files name "newline.rb"
+      if 'newline.rb' == file.basename
+        file.body = "\n" + file.body
+      end
+    end
+    transform.convert
+
+== Installation
+
+Gem is hosted on gemcutter (http://gemcutter.org)
+
+    gem install svn-transform
 
 == Note on Patches/Pull Requests
  
@@ -12,7 +93,7 @@ Description goes here.
   future version unintentionally.
 * Commit, do not mess with rakefile, version, or history.
   (if you want to have your own version, that is fine but
-   bump version in a commit by itself I can ignore when I pull)
+  bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
 
 == Copyright
