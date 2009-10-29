@@ -1,10 +1,8 @@
 require 'pathname'
-# $LOAD_PATH.unshift('/u/dev/svn-fixture/lib') # TODO Remove
 require 'svn-fixture'
-p SvnFixture::VERSION # TODO Remove
 
 class SvnTransform
-  VERSION = '0.0.1'
+  VERSION = '0.1.0'
   
   class << self
     # Use diff to compare two repositories (on local file system)
