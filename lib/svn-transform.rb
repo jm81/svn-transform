@@ -116,7 +116,7 @@ class SvnTransform
   # calls +changesets+ to do the actual work. Finally, commit the SvnFixture
   # (out repo) and update its rev 0 date to match the in repo
   def convert
-    in_repo_session = Session.new(@in_repo_uri, @in_username, @out_username)
+    in_repo_session = Session.new(@in_repo_uri, @in_username, @in_password)
     @in_repo = in_repo_session.session
     @ctx = in_repo_session.context
     @out_repo = SvnFixture.repo(@out_repo_name, @out_repos_path, @out_wc_path)
