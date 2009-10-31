@@ -16,7 +16,7 @@ EOF
     gem.email = "jmorgan@morgancreative.net"
     gem.homepage = "http://github.com/jm81/svn-props-to-yaml"
     gem.authors = ["Jared Morgan"]
-    gem.add_dependency('svn-fixture', '= 0.2.0')
+    gem.add_dependency('svn-fixture', '= 0.3.0')
     gem.add_development_dependency "spicycode-micronaut"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end

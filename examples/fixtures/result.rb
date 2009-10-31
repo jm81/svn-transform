@@ -63,6 +63,7 @@ SvnFixture.repo('result') do
       end
       
       file 'computers.md' do
+        prop 'todelete', 'delete this'
         body "--- \ntitle: Computers\neol: CRLF\npublished_at: 2009-07-01 12:00:00\n---\n\ncomputers do not \nlike salsa so much."
       end
     end
@@ -80,6 +81,7 @@ SvnFixture.repo('result') do
     dir 'articles' do
       file 'computers.md' do
         prop 'alt:title', 'Computers'
+        propdel 'todelete'
         body "--- \ntitle: Computers\neol: CRLF\npublished_at: 2009-07-01 12:00:00\n---\n\ncomputers do not \nlike salsa so much."
       end
     end

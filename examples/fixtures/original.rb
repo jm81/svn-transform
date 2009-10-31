@@ -47,6 +47,7 @@ SvnFixture.repo('original') do
       end
       
       file 'computers.txt' do
+        prop 'todelete', 'delete this'
         body "---\r\neol: CRLF\r\n\---\r\n\r\ncomputers do not \r\nlike salsa so much."
       end
     end
@@ -62,6 +63,7 @@ SvnFixture.repo('original') do
     dir 'articles' do
       file 'computers.txt' do
         prop 'alt:title', 'Computers'
+        propdel 'todelete'
       end
     end
   end

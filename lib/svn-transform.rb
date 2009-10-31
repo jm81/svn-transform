@@ -190,9 +190,7 @@ class SvnTransform
             unless transform_file.skip?
               parent_dir.file(transform_file.basename) do
                 body(transform_file.body)
-                transform_file.properties.each_pair do |prop_k, prop_v|
-                  prop(prop_k, prop_v) unless prop_k =~ /\Asvn:entry/
-                end
+                props(transform_file.properties)
               end
               # For benefit of copies
               if original_path != transform_file.path
@@ -204,9 +202,7 @@ class SvnTransform
               data = in_repo.dir(full_path.to_s, rev_num)
               transform_dir = ::SvnTransform::Dir.new(full_path, data, rev_num, rev_props, in_repo, self)
               svn_transform.__send__(:process_dir_transforms, transform_dir)
-              transform_dir.properties.each_pair do |prop_k, prop_v|
-                prop(prop_k, prop_v) unless prop_k =~ /\Asvn:entry/
-              end
+              props(transform_dir.properties)
             end
           end
         end
