@@ -41,6 +41,14 @@ describe SvnTransform::Transform::Newline do
       @file.body.should == "\nabc\n"
     end
     
+    it 'should skip binary files' do
+      input = "\r\nabc\r\n"
+      @file.body = input
+      @file.properties['svn:mime-type'] = 'application/octet-stream'
+      @klass.new(@file).run.should be_false
+      @file.body.should == "\r\nabc\r\n"
+    end
+    
     it 'should replace all newlines with @newline' do
       input = "\r\nabc\r\n\n\n\r"
       @file.body = input

@@ -24,6 +24,8 @@ class SvnTransform
       # ==== Returns
       # True, False:: indicating whether a change was made.
       def run
+        # Skip binary files; this is probably not the best way to determine.
+        return false if 'application/octet-stream' == @file.properties['svn:mime-type']
         body = @file.body.dup
         # Replace CR and CRLF
         body = all_to_lf(body)
