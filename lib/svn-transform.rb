@@ -1,5 +1,6 @@
 require 'pathname'
 require 'svn-fixture'
+require 'fileutils'
 
 class SvnTransform
   VERSION = '0.1.0'
@@ -34,6 +35,62 @@ class SvnTransform
         return true
       else
         puts ret
+        return false
+      end
+    end
+    
+    COMPARE_DIR = '/tmp/svn-transform/compare'
+    COMPARE_OLD_DIR = File.join(COMPARE_DIR, 'old')
+    COMPARE_NEW_DIR = File.join(COMPARE_DIR, 'new')
+    
+    # Compare checkouts. This takes much longer than .compare but can give a
+    # more accurate picture, because it is not affected by the changes in
+    # svn:entry properties (well, it actually just ignores the related files),
+    # the chance that entries are just in different order within the db file, or
+    # differences between the directory structure of the repo's db folders.
+    #
+    # It also has the advantage that the repositories can be remote.
+    #
+    # Note that this method will destroy existing files in the COMPARE_DIR
+    #
+    # ==== Parameters
+    # old_repo<String>:: URI of original (in) repository.
+    # new_repo<String>:: URI of generated (out) repository.
+    # min_rev<Integer>:: Starting revision for comparison
+    # max_rev<Integer>:: Ending revision for comparison
+    def co_compare(old_repo, new_repo, min_rev, max_rev)
+      FileUtils.rm_rf(COMPARE_OLD_DIR)
+      FileUtils.rm_rf(COMPARE_NEW_DIR)
+
+      rev = min_rev
+      `svn co -r#{rev} "#{old_repo}" "#{COMPARE_OLD_DIR}"`
+      `svn co -r#{rev} "#{new_repo}" "#{COMPARE_NEW_DIR}"`
+      
+      while rev <= max_rev
+        co_compare_rev(rev)
+        rev += 1
+      end
+    end
+    
+    # Called by .co_compare, this checks out and compares the repositories at
+    # a signle revision. It prints out any differences.
+    #
+    # ==== Parameters
+    # rev<Integer>:: The revision to compare.
+    #
+    # ==== Returns
+    # True, False:: Whether the revisions are identical
+    def co_compare_rev(rev)
+      print "#{rev} "
+      `svn update -r#{rev} "#{COMPARE_OLD_DIR}"`
+      `svn update -r#{rev} "#{COMPARE_NEW_DIR}"`
+      ret = `diff --brief --exclude=entries -r "#{COMPARE_OLD_DIR}" "#{COMPARE_NEW_DIR}"`
+      if ret.empty?
+        return true
+      else
+        puts "REVISION #{rev}"
+        puts ret
+        puts ("-" * 70)
         return false
       end
     end
