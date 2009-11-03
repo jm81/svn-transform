@@ -234,6 +234,12 @@ class SvnTransform
           
           # TODO Replaces
           
+          copy_from_path = nil
+          if change.copyfrom_path
+            short_from_path = path_renames[change.copyfrom_path] || change.copyfrom_path
+            copy_from_path = ::File.join(out_wc_path, short_from_path)
+          end
+          
           if change.action == 'D'
             del_path = path_renames['/' + full_path.to_s] || full_path.to_s
             @ctx.delete(::File.join(out_wc_path, del_path))
@@ -242,15 +248,7 @@ class SvnTransform
             transform_file = ::SvnTransform::File.new(full_path, data, rev_num, rev_props)
             original_path = transform_file.path
             svn_transform.__send__(:process_file_transforms, transform_file)
-            
-            if change.copyfrom_path
-              from_path = path_renames[change.copyfrom_path] || change.copyfrom_path
-              @ctx.cp( 
-                ::File.join(out_wc_path, from_path),
-                ::File.join(out_wc_path, transform_file.path.to_s)
-              )
-            end
-            
+            @ctx.cp(copy_from_path, ::File.join(out_wc_path, transform_file.path.to_s)) if copy_from_path
             unless transform_file.skip?
               parent_dir.file(transform_file.basename) do
                 body(transform_file.body)
@@ -262,6 +260,8 @@ class SvnTransform
               end
             end
           else # directory
+            # Paths don't change for directories, but use this for consistency
+            @ctx.cp(copy_from_path, ::File.join(out_wc_path, full_path.to_s)) if copy_from_path
             parent_dir.dir(full_path.basename.to_s) do
               data = in_repo.dir(full_path.to_s, rev_num)
               transform_dir = ::SvnTransform::Dir.new(full_path, data, rev_num, rev_props, in_repo, self)
@@ -306,8 +306,10 @@ class SvnTransform
   
   # Return an Integer such that file changes are first, directories second
   # and deleted nodes last (to minimize the chance of a Transformation being
-  # overridden.
+  # overridden. Copies are done first (so that files within a copied dir don't
+  # try to create the dir before the copy.
   def sort_for(change, rev_num)
+    return -1 if change[1].copyfrom_path
     return 2 if change[1].action == 'D'
     return 0 if @in_repo.stat(change[0].sub(/\A\//, ''), rev_num).file?
     return 1
