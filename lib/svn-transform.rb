@@ -2,8 +2,11 @@ require 'pathname'
 require 'svn-fixture'
 require 'fileutils'
 
+STDOUT.sync = true
+
 class SvnTransform
   VERSION = '0.1.0'
+  PRINT_INFO = false
   
   class << self
     # Use diff to compare two repositories (on local file system)
@@ -81,14 +84,14 @@ class SvnTransform
     # ==== Returns
     # True, False:: Whether the revisions are identical
     def co_compare_rev(rev)
-      print "#{rev} "
+      print "#{rev} " if PRINT_INFO
       `svn update -r#{rev} "#{COMPARE_OLD_DIR}"`
       `svn update -r#{rev} "#{COMPARE_NEW_DIR}"`
       ret = `diff --brief --exclude=entries -r "#{COMPARE_OLD_DIR}" "#{COMPARE_NEW_DIR}"`
       if ret.empty?
         return true
       else
-        puts "REVISION #{rev}"
+        puts "\nREVISION #{rev}"
         puts ret
         puts ("-" * 70)
         return false
@@ -179,7 +182,9 @@ class SvnTransform
     @out_repo = SvnFixture.repo(@out_repo_name, @out_repos_path, @out_wc_path)
     
     # Process changesets and commit
+    puts "\nReading existing log..." if PRINT_INFO
     changesets
+    puts "\nCommitting to new..." if PRINT_INFO
     @out_repo.commit
     
     # Update rev 0 date
@@ -199,6 +204,7 @@ class SvnTransform
     path_renames = {}
     
     @in_repo.log(*args) do |changes, rev_num, author, date, msg|
+      print "#{rev_num} " if PRINT_INFO
       # Sort so that files are processed first (for benefit of PropsToYaml),
       # and deletes are last
       changes = changes.sort { |a,b| sort_for(a, rev_num) <=> sort_for(b, rev_num) }
@@ -212,6 +218,7 @@ class SvnTransform
       out_wc_path = @out_repo.wc_path
       svn_transform = self
       @out_repo.revision(rev_num, msg, rev_props) do
+        print "#{rev_num} " if SvnTransform::PRINT_INFO
         # Now go through all the changes. Setup directorie structure for each
         # node. This is easier to understand, in my opinion.
         
