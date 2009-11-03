@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{svn-transform}
-  s.version = "0.1.0"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jared Morgan"]
-  s.date = %q{2009-10-28}
+  s.date = %q{2009-11-02}
   s.description = %q{Given a Subversion repository, svn-transform creates a new repo that is by 
 default identical, but allows changes to files, for example all or some of the 
 properties on each file can be moved from the properties to YAML prepended to 
@@ -46,7 +46,8 @@ types such as git.
      "lib/svn-transform/transform/extension.rb",
      "lib/svn-transform/transform/newline.rb",
      "lib/svn-transform/transform/noop.rb",
-     "lib/svn-transform/transform/props_to_yaml.rb"
+     "lib/svn-transform/transform/props_to_yaml.rb",
+     "svn-transform.gemspec"
   ]
   s.homepage = %q{http://github.com/jm81/svn-props-to-yaml}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -72,14 +73,14 @@ types such as git.
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<svn-fixture>, ["= 0.2.0"])
+      s.add_runtime_dependency(%q<svn-fixture>, ["= 0.3.0"])
       s.add_development_dependency(%q<spicycode-micronaut>, [">= 0"])
     else
-      s.add_dependency(%q<svn-fixture>, ["= 0.2.0"])
+      s.add_dependency(%q<svn-fixture>, ["= 0.3.0"])
       s.add_dependency(%q<spicycode-micronaut>, [">= 0"])
     end
   else
-    s.add_dependency(%q<svn-fixture>, ["= 0.2.0"])
+    s.add_dependency(%q<svn-fixture>, ["= 0.3.0"])
     s.add_dependency(%q<spicycode-micronaut>, [">= 0"])
   end
 end
